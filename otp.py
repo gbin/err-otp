@@ -89,18 +89,24 @@ class OTP(BotPlugin):
         """List the current commands requiring OTPs."""
         return "Commands with mandatory OTP:\n" + '\n'.join(self['cmds'])
 
-    @botcmd(admin_only=True)
+    @botcmd(admin_only=True, split_args_with=None)
     def otp_secret(self, msg, args):
         """Send a new secret to somebody"""
-        new_secret = pyotp.random_base32()
+        if len(args) > 1:
+            new_secret = args[1]
+            target_user = args[0]
+        else:
+            new_secret = pyotp.random_base32()
+            target_user = args
+            
         with self.lock:
             with self.stored('secrets') as secrets:
-                secrets[args] = (new_secret, 0, BEGINNING_OF_TIMES)
+                secrets[target_user] = (new_secret, 0, BEGINNING_OF_TIMES)
         totp = pyotp.TOTP(new_secret)
-        url = totp.provisioning_uri(args)
-        self.send(self.build_identifier(args), makeQRCodeMessage(url, self._bot.mode), None, 'chat')
+        url = totp.provisioning_uri(target_user)
+        self.send(self.build_identifier(target_user), makeQRCodeMessage(url, self._bot.mode), None, 'chat')
 
-        return "New secret set for %s and message sent." % args
+        return "New secret set for %s and message sent." % target_user
 
     @botcmd(admin_only=True)
     def otp_reset(self, msg, args):
