@@ -89,7 +89,7 @@ class OTP(BotPlugin):
         """List the current commands requiring OTPs."""
         return "Commands with mandatory OTP:\n" + '\n'.join(self['cmds'])
 
-    @botcmd(admin_only=True)
+    @botcmd(admin_only=True, split_args_with=None)
     def otp_secret(self, msg, args):
         """Send a new secret to somebody"""
         if len(args) > 1:
