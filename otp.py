@@ -37,11 +37,6 @@ def makeQRCodeMessage(data, mode):
 class OTP(BotPlugin):
     """ This implements One Time Passwords for Errbot.
     """
-    def __init__(self, bot):
-        super().__init__(bot)
-        self.backlog = []  # backlog of commands awaiting for OTP.
-        self.lock = threading.Lock()  # protects storage
-        self.bl_lock = threading.Lock()  # protects backlog
 
     @contextlib.contextmanager
     def stored(self, key):
@@ -55,6 +50,9 @@ class OTP(BotPlugin):
 
     def activate(self):
         super().activate()
+        self.backlog = []  # backlog of commands awaiting for OTP.
+        self.lock = threading.Lock()  # protects storage
+        self.bl_lock = threading.Lock()  # protects backlog
         if 'cmds' not in self:
             self['cmds'] = set()
         if 'secrets' not in self:
@@ -109,7 +107,7 @@ class OTP(BotPlugin):
 
     def callback_message(self, msg):
         """Check the messages if it received an OTP confirming a command."""
-        if msg.type == 'groupchat':
+        if msg.is_group:
             return
         try:
             otp = int(msg.body)
